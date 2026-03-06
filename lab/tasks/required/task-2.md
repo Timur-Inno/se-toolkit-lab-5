@@ -1,357 +1,276 @@
-# Back-end Testing
+# Analytics Endpoints
 
 <h4>Time</h4>
 
-~75 min
+~45 min
 
 <h4>Purpose</h4>
 
-Write unit and end-to-end tests, diagnose bugs from failing test output, and use an AI agent to generate additional test cases.
+Implement four analytics endpoints that perform SQL aggregation queries on the data populated by the ETL pipeline. Use pre-written tests to verify your implementation.
 
 <h4>Context</h4>
 
-The back-end contains intentional bugs at specific boundary values.
-You will discover and fix them by writing tests, then use an AI agent to generate additional coverage.
+The ETL pipeline from Task 1 has populated the database with check results. Now the team needs endpoints that aggregate this data for dashboards: score distributions, per-task pass rates, submission timelines, and per-group performance.
+
+Pre-written tests in [`backend/tests/unit/test_analytics.py`](../../../backend/tests/unit/test_analytics.py) define the expected behavior. Your job is to implement the endpoints so that all tests pass.
 
 <h4>Table of contents</h4>
 
 - [1. Steps](#1-steps)
-  - [1.1. Follow the `Git workflow`](#11-follow-the-git-workflow)
-  - [1.2. Create a `Lab Task` issue](#12-create-a-lab-task-issue)
-  - [1.3. Part A: Run unit tests locally](#13-part-a-run-unit-tests-locally)
-    - [1.3.1. Run existing unit tests](#131-run-existing-unit-tests)
-    - [1.3.2. Add a new unit test](#132-add-a-new-unit-test)
-    - [1.3.3. Fix the bug](#133-fix-the-bug)
-    - [1.3.4. Rerun unit tests](#134-rerun-unit-tests)
-    - [1.3.5. Commit the fix](#135-commit-the-fix)
-  - [1.4. Part B: Run end-to-end tests remotely](#14-part-b-run-end-to-end-tests-remotely)
-    - [1.4.1. Redeploy the fixed version](#141-redeploy-the-fixed-version)
-    - [1.4.2. Run existing end-to-end tests](#142-run-existing-end-to-end-tests)
-    - [1.4.3. Add two end-to-end tests](#143-add-two-end-to-end-tests)
-    - [1.4.4. Fix the bug](#144-fix-the-bug)
-    - [1.4.5. Redeploy and rerun](#145-redeploy-and-rerun)
-    - [1.4.6. Commit the fix](#146-commit-the-fix)
-  - [1.5. Part C: Generate tests with an AI agent](#15-part-c-generate-tests-with-an-ai-agent)
-    - [1.5.1. Generate tests](#151-generate-tests)
-    - [1.5.2. Review and curate the tests](#152-review-and-curate-the-tests)
-    - [1.5.3. Run the full test suite](#153-run-the-full-test-suite)
-    - [1.5.4. Commit the curated tests](#154-commit-the-curated-tests)
-  - [1.6. Finish the task](#16-finish-the-task)
+  - [1.1. Follow the usual `Git workflow`](#11-follow-the-usual-git-workflow)
+  - [1.2. Read the tests and stubs](#12-read-the-tests-and-stubs)
+  - [1.3. Run the tests (expect failures)](#13-run-the-tests-expect-failures)
+  - [1.4. Implement the endpoints](#14-implement-the-endpoints)
+    - [1.4.1. Scores histogram](#141-scores-histogram)
+    - [1.4.2. Pass rates](#142-pass-rates)
+    - [1.4.3. Timeline](#143-timeline)
+    - [1.4.4. Groups](#144-groups)
+  - [1.5. Run the tests (all should pass)](#15-run-the-tests-all-should-pass)
+  - [1.6. Commit and push your work](#16-commit-and-push-your-work)
+  - [1.7. Deploy and verify](#17-deploy-and-verify)
+  - [1.8. Finish the task](#18-finish-the-task)
+  - [1.9. Check the task using the autochecker](#19-check-the-task-using-the-autochecker)
 - [2. Acceptance criteria](#2-acceptance-criteria)
 
 ## 1. Steps
 
-### 1.1. Follow the `Git workflow`
+### 1.1. Follow the usual `Git workflow`
 
-Follow the [`Git workflow`](../../../wiki/git-workflow.md) to complete this task.
+Issue: `[Task] Analytics Endpoints`
 
-### 1.2. Create a `Lab Task` issue
+New branch: Base it on the latest version on `main` and name it appropriately.
 
-Title: `[Task] Back-end Testing`
+Do you remember the advice from Task 1?
 
-### 1.3. Part A: Run unit tests locally
+### 1.2. Read the tests and stubs
 
-> [!NOTE]
-> Unit tests do not require a running server. They test individual functions in isolation.
+1. [Open the file](../../../wiki/vs-code.md#open-the-file):
+   [`backend/tests/unit/test_analytics.py`](../../../backend/tests/unit/test_analytics.py).
 
-#### 1.3.1. Run existing unit tests
+   This file contains 17 tests organized into four test classes:
 
-1. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+   | Test class | Endpoint | What it tests |
+   |------------|----------|---------------|
+   | `TestScores` | `GET /analytics/scores?lab=lab-04` | Score histogram with 4 buckets |
+   | `TestPassRates` | `GET /analytics/pass-rates?lab=lab-04` | Average score and attempt count per task |
+   | `TestTimeline` | `GET /analytics/timeline?lab=lab-04` | Submission count per day |
+   | `TestGroups` | `GET /analytics/groups?lab=lab-04` | Average score and student count per group |
+
+   > [!NOTE]
+   > The tests create an in-memory database with fixture data and send requests to the endpoints.
+   > You do not need to modify the tests — only the endpoint implementations.
+
+2. [Open the file](../../../wiki/vs-code.md#open-the-file):
+   [`backend/app/routers/analytics.py`](../../../backend/app/routers/analytics.py).
+
+   This file contains four endpoint stubs. Each endpoint currently raises `NotImplementedError`.
+
+   Read the TODO comments to understand the expected query logic.
+
+### 1.3. Run the tests (expect failures)
+
+1. [Check that the current directory is `se-toolkit-lab-5`](../../../wiki/shell.md#check-the-current-directory-is-directory-name).
+
+2. To run the unit tests,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    uv run poe test
    ```
 
-2. All existing tests should pass.
-
-   The output should be similar to this:
+3. You should see 17 analytics tests failing and 3 interaction tests passing:
 
    ```terminal
-   ===================== 3 passed in X.XXs =====================
+   17 failed, 3 passed
    ```
 
-#### 1.3.2. Add a new unit test
+   The failures are expected — the endpoints are not implemented yet.
 
-1. [Open the file](../../../wiki/vs-code.md#open-the-file):
-   [`backend/tests/unit/test_interactions.py`](../../../backend/tests/unit/test_interactions.py).
-2. Add a new unit test that targets the following boundary-value case:
+### 1.4. Implement the endpoints
 
-   An interaction where `item_id` and `learner_id` are different values — for example, `item_id=1` and `learner_id=2`. When filtering by `item_id=1`, this interaction should appear in the results.
+You can implement the endpoints manually or use an AI coding agent. Each endpoint performs an SQL aggregation query.
 
-   Name the test `test_filter_excludes_interaction_with_different_learner_id`.
+> [!TIP]
+> If using an AI agent, give it a prompt like:
+>
+> "Read the tests in `backend/tests/unit/test_analytics.py` and the stubs in `backend/app/routers/analytics.py`. Implement all four endpoints to make the tests pass. Use SQLAlchemy/SQLModel queries."
+>
+> The agent will have the test expectations and the TODO comments to guide it.
 
-> [!NOTE]
-> Feel free to use AI to generate the tests. Make sure to provide them with necessary context.
+The `lab` query parameter is a lab identifier like `"lab-04"`. Transform it to match the title format (e.g. `"lab-04"` → `"Lab 04"`) and find items whose title contains that string.
 
-3. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+<!-- no toc -->
+- [1.4.1. Scores histogram](#141-scores-histogram)
+- [1.4.2. Pass rates](#142-pass-rates)
+- [1.4.3. Timeline](#143-timeline)
+- [1.4.4. Groups](#144-groups)
 
-   ```terminal
-   uv run poe test
-   ```
+#### 1.4.1. Scores histogram
 
-4. Observe that the new test fails.
+`GET /analytics/scores?lab=lab-04`
 
-   The output should be similar to this:
+Returns the distribution of scores in four buckets:
 
-   ```terminal
-   FAILED backend/tests/unit/test_interactions.py::test_filter_excludes_interaction_with_different_learner_id - AssertionError: assert 0 == 1
-   ```
-
-   This line means the following:
-   - The test failed (`FAILED`).
-   - The test is in the file `backend/tests/unit/test_interactions.py`.
-   - The name of the failing test is `test_filter_excludes_interaction_with_different_learner_id`.
-   - The failed assertion is `assert 0 == 1` — the filter returned 0 interactions, but 1 was expected.
-
-#### 1.3.3. Fix the bug
-
-1. [Open the file](../../../wiki/vs-code.md#open-the-file):
-   [`backend/app/routers/interactions.py`](../../../backend/app/routers/interactions.py).
-2. Fix the bug in the `_filter_by_item_id` function.
-
-<details><summary>Click to open a hint</summary>
-
-The filter is applied in-memory after all interactions are fetched from the database.
-Look at the condition that decides which interactions to include — it compares the wrong field on the interaction object.
-
-</details>
-
-<details><summary>Click to open the solution</summary>
-
-Find this line in `_filter_by_item_id`:
-
-```python
-return [i for i in interactions if i.learner_id == item_id]  # BUG
+```json
+[
+  {"bucket": "0-25", "count": 12},
+  {"bucket": "26-50", "count": 8},
+  {"bucket": "51-75", "count": 15},
+  {"bucket": "76-100", "count": 25}
+]
 ```
 
-Change it to:
+Query logic:
 
-```python
-return [i for i in interactions if i.item_id == item_id]
+1. Find the lab item whose title contains the `lab` parameter (e.g. `"lab-04"` → match `"Lab 04"` in the title).
+2. Find all task items that belong to this lab (`parent_id = lab.id`).
+3. Query interactions for these tasks that have a `score`.
+4. Group scores into 4 buckets using `CASE WHEN` expressions.
+5. Always return all four buckets, even if the count is 0.
+
+#### 1.4.2. Pass rates
+
+`GET /analytics/pass-rates?lab=lab-04`
+
+Returns per-task statistics:
+
+```json
+[
+  {"task": "Repository Setup", "avg_score": 92.3, "attempts": 150}
+]
 ```
 
-</details>
+Query logic:
 
-#### 1.3.4. Rerun unit tests
+1. Find the lab item and its child task items.
+2. For each task, compute the average score (rounded to 1 decimal) and total number of interactions.
+3. Order by task title.
 
-1. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+#### 1.4.3. Timeline
+
+`GET /analytics/timeline?lab=lab-04`
+
+Returns submissions per day:
+
+```json
+[
+  {"date": "2026-02-28", "submissions": 45}
+]
+```
+
+Query logic:
+
+1. Find the lab item and its child task items.
+2. Group interactions by date (cast `created_at` to date).
+3. Count submissions per day.
+4. Order by date ascending.
+
+#### 1.4.4. Groups
+
+`GET /analytics/groups?lab=lab-04`
+
+Returns per-group performance:
+
+```json
+[
+  {"group": "B23-CS-01", "avg_score": 78.5, "students": 25}
+]
+```
+
+Query logic:
+
+1. Find the lab item and its child task items.
+2. Join interactions with learners to get `student_group`.
+3. For each group, compute the average score (rounded to 1 decimal) and count of distinct learners.
+4. Order by group name.
+
+### 1.5. Run the tests (all should pass)
+
+1. To run the full test suite,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    uv run poe test
    ```
 
-2. All tests should pass.
+2. All 20 tests should pass:
 
-#### 1.3.5. Commit the fix
+   ```terminal
+   ===================== 20 passed in X.XXs =====================
+   ```
 
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
+   <details><summary>Troubleshooting</summary>
 
-   Use the following commit message:
+   <h4>Some tests still fail</h4>
+
+   Read the failing test name and assertion message carefully. The test names describe what they expect. For example, `test_scores_counts_are_correct` checks specific count values for each bucket.
+
+   Run a single test class to focus on one endpoint:
+
+   ```terminal
+   uv run pytest backend/tests/unit/test_analytics.py::TestScores -v
+   ```
+
+   <h4><code>NotImplementedError</code></h4>
+
+   You haven't implemented the endpoint yet. Check that you replaced `raise NotImplementedError` with the query logic.
+
+   </details>
+
+### 1.6. Commit and push your work
+
+1. [Commit](../../../wiki/git-workflow.md#commit-changes) your changes.
+
+   Use this commit message:
 
    ```text
-   fix: filter interactions by item_id instead of learner_id
+   feat: implement analytics endpoints (scores, pass-rates, timeline, groups)
    ```
 
-### 1.4. Part B: Run end-to-end tests remotely
-
-> [!NOTE]
-> End-to-end tests run on your local machine and send real [HTTP](../../../wiki/http.md) requests to the deployed version on the VM.
-
-#### 1.4.1. Redeploy the fixed version
-
-1. Deploy the fixed version to your VM. Follow the same deployment process as in Task 1 (see the [VM](../../../wiki/vm.md) wiki page for a reminder).
-
-#### 1.4.2. Run existing end-to-end tests
-
-1. Set the required environment variables in the terminal. Complete the following steps:
-
-   1. Set the base URL of your deployed API:
-
-      ```terminal
-      export API_BASE_URL=https://<your-vm-address>
-      ```
-
-      See [`<your-vm-ip-address>`](../../../wiki/vm.md#your-vm-ip-address).
-
-   2. Set the API token (use the same value as in your `.env.secret`):
-
-      ```terminal
-      export API_TOKEN=<your-api-token>
-      ```
-
-2. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+2. Push your task branch:
 
    ```terminal
-   uv run poe test-e2e
+   git push -u origin <task-branch>
    ```
 
-3. All existing end-to-end tests should pass.
+   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
 
-   The output should be similar to this:
+### 1.7. Deploy and verify
+
+1. On your VM, pull your branch and restart the services:
 
    ```terminal
-   ===================== 2 passed in X.XXs =====================
+   cd se-toolkit-lab-5
+   git fetch origin && git checkout <task-branch> && git pull
+   docker compose --env-file .env.docker.secret up --build -d
    ```
 
-#### 1.4.3. Add two end-to-end tests
+   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
 
-1. [Open the file](../../../wiki/vs-code.md#open-the-file):
-   [`backend/tests/e2e/test_interactions.py`](../../../backend/tests/e2e/test_interactions.py).
-2. Add two end-to-end tests that cover the following boundary-value cases:
+2. Open `Swagger UI` at `http://<your-vm-ip-address>:42002/docs`. Authorize with your `API_KEY`.
 
-   - Test 1: `GET /interactions/` returns [HTTP status code](../../../wiki/http.md#http-response-status-code) `200`.
-   - Test 2: `GET /interactions/` response body is a [JSON](../../../wiki/file-formats.md#json) array.
+   Try each analytics endpoint with `lab=lab-04` (or any lab that has data). Verify that each returns a `200` response with a JSON array.
 
-   <details><summary>Click to open a hint</summary>
-
-   The response model for `GET /interactions/` defines the fields the API must return.
-   Compare the field names in the response model to the column names in the database.
-   A mismatch there causes the server to fail when building the response.
-
-   </details>
-
-   <details><summary>Click to open the solution</summary>
-
-   ```python
-   import httpx
-
-
-   def test_get_interactions_returns_200(client: httpx.Client) -> None:
-       response = client.get("/interactions/")
-       assert response.status_code == 200
-
-
-   def test_get_interactions_response_is_a_list(client: httpx.Client) -> None:
-       response = client.get("/interactions/")
-       assert isinstance(response.json(), list)
-   ```
-
-   </details>
-
-3. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
-
-   ```terminal
-   uv run poe test-e2e
-   ```
-
-4. Observe that both new tests fail.
-
-   The output should be similar to this:
-
-   ```terminal
-   FAILED backend/tests/e2e/test_interactions.py::test_get_interactions_returns_200 - AssertionError: assert 500 == 200
-   FAILED backend/tests/e2e/test_interactions.py::test_get_interactions_response_is_a_list - ...
-   ```
-
-   The `500` status code means the server encountered an internal error while building the response.
-
-#### 1.4.4. Fix the bug
-
-1. [Open the file](../../../wiki/vs-code.md#open-the-file):
-   [`backend/app/models/interaction.py`](../../../backend/app/models/interaction.py).
-2. Fix the bug in `InteractionModel`.
-
-   <details><summary>Click to open a hint</summary>
-
-   The response model has a field whose name does not match the corresponding column in the database.
-   When `FastAPI` tries to serialize the database row into the response model, it cannot find the expected field and returns a `500` error.
-
-   </details>
-
-   <details><summary>Click to open the solution</summary>
-
-   Find this line in `InteractionModel`:
-
-   ```python
-   timestamp: datetime  # BUG: should be 'created_at' to match the database column
-   ```
-
-   Change it to:
-
-   ```python
-   created_at: datetime
-   ```
-
-   </details>
-
-#### 1.4.5. Redeploy and rerun
-
-1. Deploy the fixed version to the VM.
-2. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
-
-   ```terminal
-   uv run poe test-e2e
-   ```
-
-3. All end-to-end tests should pass.
-
-#### 1.4.6. Commit the fix
-
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
-
-   Use the following commit message:
-
-   ```text
-   fix: rename timestamp to created_at in InteractionModel
-   ```
-
-> [!IMPORTANT]
-> Each fix must be a **separate commit**. Do not combine the Part A and Part B fixes into one commit.
-
-### 1.5. Part C: Generate tests with an AI agent
-
-#### 1.5.1. Generate tests
-
-1. Open the AI agent in the back-end project directory.
-2. Give it this prompt:
-
-   > "Read the back-end source code and the existing unit tests. Generate five new unit tests that cover edge cases and boundary values not already tested."
-
-3. Wait for the agent to generate the tests.
-
-#### 1.5.2. Review and curate the tests
-
-1. Review each generated test against the following criteria:
-
-   - **Keep** — the test is correct, targets a real case, and adds coverage not already present.
-   - **Fix** — the test has a minor error (wrong assertion, wrong expected value) but the idea is sound — correct it.
-   - **Discard** — the test duplicates an existing test, is logically wrong, or tests behaviour outside the scope of the module.
-
-2. Keep at least two tests and discard at least one.
-
-#### 1.5.3. Run the full test suite
-
-1. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
-
-   ```terminal
-   uv run poe test
-   ```
-
-2. All tests (including the curated AI-generated ones) should pass.
-
-#### 1.5.4. Commit the curated tests
-
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
-
-   Use the following commit message:
-
-   ```text
-   test: add curated AI-generated unit tests
-   ```
-
-### 1.6. Finish the task
+### 1.8. Finish the task
 
 1. [Create a PR](../../../wiki/git-workflow.md#create-a-pr-to-the-main-branch-in-your-fork) with your changes.
 2. [Get a PR review](../../../wiki/git-workflow.md#get-a-pr-review) and complete the subsequent steps in the `Git workflow`.
+
+### 1.9. Check the task using the autochecker
+
+[Check the task using the autochecker `Telegram` bot](../../../wiki/autochecker.md#check-the-task-using-the-autochecker-bot).
 
 ---
 
 ## 2. Acceptance criteria
 
 - [ ] Issue has the correct title.
-- [ ] All unit tests pass.
-- [ ] All end-to-end tests pass.
-- [ ] AI-generated tests include at least two kept tests and at least one discarded test.
-- [ ] The Part A fix and Part B fix are separate commits.
+- [ ] `uv run poe test` passes all 20 tests (17 analytics + 3 interaction).
+- [ ] `GET /analytics/scores?lab=<lab>` returns `200` with a JSON array of 4 bucket objects.
+- [ ] `GET /analytics/pass-rates?lab=<lab>` returns `200` with a JSON array of task objects.
+- [ ] `GET /analytics/timeline?lab=<lab>` returns `200` with a JSON array of date objects.
+- [ ] `GET /analytics/groups?lab=<lab>` returns `200` with a JSON array of group objects.
 - [ ] PR is approved.
 - [ ] PR is merged.

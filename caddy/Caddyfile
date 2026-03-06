@@ -1,4 +1,4 @@
-# https://caddyserver.com/docs/caddyfile/concepts#environment-variables
+# See wiki/caddy.md
 
 :{$CADDY_CONTAINER_PORT} {
     handle /items* {
@@ -8,6 +8,12 @@
         reverse_proxy http://app:{$APP_CONTAINER_PORT}
     }
     handle /interactions* {
+        reverse_proxy http://app:{$APP_CONTAINER_PORT}
+    }
+    handle /pipeline* {
+        reverse_proxy http://app:{$APP_CONTAINER_PORT}
+    }
+    handle /analytics* {
         reverse_proxy http://app:{$APP_CONTAINER_PORT}
     }
     handle /docs* {

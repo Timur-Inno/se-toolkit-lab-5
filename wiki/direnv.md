@@ -1,11 +1,12 @@
 # `direnv`
 
+<h2>Table of contents</h2>
+
 - [What is `direnv`](#what-is-direnv)
 - [Set up `direnv`](#set-up-direnv)
   - [Install `direnv`](#install-direnv)
   - [Hook `direnv` into your shell](#hook-direnv-into-your-shell)
   - [(Optional) Set up `nix-direnv`](#optional-set-up-nix-direnv)
-  - [Reboot your computer](#reboot-your-computer)
   - [Install the `VS Code` extension](#install-the-vs-code-extension)
   - [Run `direnv allow`](#run-direnv-allow)
   - [Reset and reload environment](#reset-and-reload-environment)
@@ -14,7 +15,7 @@
 
 ## What is `direnv`
 
-`direnv` is a [shell](./shell.md#what-is-shell) extension that automatically loads and unloads [environment variables](./environments.md#environment-variables) when you enter or leave a [directory](./file-system.md#directory).
+`direnv` is a [shell](./shell.md#what-is-a-shell) extension that automatically loads and unloads [environment variables](./environments.md#environment-variable) when you enter or leave a [directory](./file-system.md#directory).
 
 In this project, `direnv` reads the [`.envrc`](../.envrc) file and uses [`Nix`](./nix.md#what-is-nix) to set up the [development environment](./environments.md#development-environment) with the correct [tools](./package-manager.md#tool) and [dependencies](./package-manager.md#dependency).
 
@@ -29,24 +30,25 @@ Complete these steps:
 1. [Install `direnv`](#install-direnv).
 2. [Hook `direnv` into your shell](#hook-direnv-into-your-shell).
 3. [Set up `nix-direnv`](#optional-set-up-nix-direnv).
-4. [Reboot your computer](#reboot-your-computer).
-5. [Install the `VS Code` extension](#install-the-vs-code-extension).
-6. [Run `direnv allow`](#run-direnv-allow).
-7. [Reset and reload environment](#reset-and-reload-environment).
-8. [Reload the `VS Code Terminal`](#reload-the-vs-code-terminal).
-9. [Check tool versions](#check-tool-versions).
+4. [Install the `VS Code` extension](#install-the-vs-code-extension).
+5. [Run `direnv allow`](#run-direnv-allow).
+6. [Reset and reload environment](#reset-and-reload-environment).
+7. [Reload the `VS Code Terminal`](#reload-the-vs-code-terminal).
+8. [Check tool versions](#check-tool-versions).
 
 ### Install `direnv`
 
-1. [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+1. To install `direnv`,
+
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    nix profile add nixpkgs#direnv
    ```
 
-2. Check `direnv` version:
+2. To check the `direnv` version,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    direnv --version
@@ -74,23 +76,25 @@ Follow the [instructions for your shell](https://direnv.net/docs/hook.html) to c
 
 If you use `bash` (see [Check the current shell](./vs-code.md#check-the-current-shell-in-the-vs-code-terminal)):
 
-1. [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+1. To install `nix-direnv`,
+
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    nix profile add nixpkgs#nix-direnv
    ```
 
-2. Create a directory for the `direnv` config:
+2. To create a directory for the `direnv` config,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    mkdir -p $HOME/.config/direnv
    ```
 
-3. Create the `direnv` config file:
+3. To create the `direnv` config file,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    touch $HOME/.config/direnv/direnvrc
@@ -104,19 +108,15 @@ If you use `bash` (see [Check the current shell](./vs-code.md#check-the-current-
    source $HOME/.nix-profile/share/nix-direnv/direnvrc
    ```
 
-### Reboot your computer
-
-Reboot.
-
 ### Install the `VS Code` extension
 
 [Install the extension](./vs-code.md#install-the-extension) with the identifier `mkhl.direnv`.
 
 ### Run `direnv allow`
 
-1. Make sure you are in the directory that contains a `.envrc` file:
+1. To check that you are in the directory that contains a `.envrc` file,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    ls .envrc
@@ -128,9 +128,9 @@ Reboot.
    .envrc
    ```
 
-2. Allow `direnv` to use the `.envrc` file:
-  
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+2. To allow `direnv` to use the `.envrc` file,
+
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    direnv allow
@@ -152,7 +152,9 @@ Update the environment in which [`VS Code` extensions](./vs-code.md#extensions) 
 
 ### Reload the `VS Code Terminal`
 
-1. [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+1. To reload the `direnv` environment,
+
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    direnv reload
@@ -171,9 +173,9 @@ Update the environment in which [`VS Code` extensions](./vs-code.md#extensions) 
 
 ### Check tool versions
 
-1. Check the `uv` version:
+1. To check the `uv` version,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    uv --version
@@ -185,9 +187,9 @@ Update the environment in which [`VS Code` extensions](./vs-code.md#extensions) 
    uv 0.10.4
    ```
 
-2. Check the `node` version:
+2. To check the `node` version,
 
-   [Run using the `VS Code Terminal`](./vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](./vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    node --version

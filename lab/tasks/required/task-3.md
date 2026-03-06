@@ -1,38 +1,34 @@
-# Add Front-end
+# Dashboard Front-end
 
 <h4>Time</h4>
 
-~50 min
+~45 min
 
 <h4>Purpose</h4>
 
-Understand the difference between a dev server and production static files, and use an AI agent to modify front-end code.
+Add charts to the front-end to visualize the analytics data from Task 2, and learn to integrate a chart library into a React application.
 
 <h4>Context</h4>
 
-The back-end API is running on the VM. You will add a front-end that connects to it.
-First you will run it locally with a dev server (fast iteration, hot reload).
-Then you will build and deploy a production version (static files served by `Caddy`).
-Finally, you will use an AI agent to add a new feature to the front-end.
+The analytics endpoints are returning data. Now the team wants a visual dashboard so users can see score distributions, submission timelines, and group performance at a glance.
+
+You will use `Chart.js` (via `react-chartjs-2`) to create bar charts, line charts, or tables.
+An AI coding agent can help with the `Chart.js` integration.
 
 <h4>Table of contents</h4>
 
 - [1. Steps](#1-steps)
   - [1.1. Follow the `Git workflow`](#11-follow-the-git-workflow)
   - [1.2. Create a `Lab Task` issue](#12-create-a-lab-task-issue)
-  - [1.3. Part A: Dev version](#13-part-a-dev-version)
-    - [1.3.1. Run the dev server](#131-run-the-dev-server)
-    - [1.3.2. Edit a source file and observe hot reload](#132-edit-a-source-file-and-observe-hot-reload)
-  - [1.4. Part B: Prod version](#14-part-b-prod-version)
-    - [1.4.1. Build the production bundle](#141-build-the-production-bundle)
-    - [1.4.2. Copy the `dist/` folder to the VM](#142-copy-the-dist-folder-to-the-vm)
-    - [1.4.3. Configure `Caddy`](#143-configure-caddy)
-    - [1.4.4. Verify in the browser](#144-verify-in-the-browser)
-  - [1.5. Part C: Modify the front-end with an AI agent](#15-part-c-modify-the-front-end-with-an-ai-agent)
-    - [1.5.1. Add a column using the AI agent](#151-add-a-column-using-the-ai-agent)
-    - [1.5.2. Verify in the dev server](#152-verify-in-the-dev-server)
-    - [1.5.3. Deploy the change to the VM](#153-deploy-the-change-to-the-vm)
-  - [1.6. Finish the task](#16-finish-the-task)
+  - [1.3. Install the chart library](#13-install-the-chart-library)
+  - [1.4. Create the dashboard component](#14-create-the-dashboard-component)
+  - [1.5. Add navigation](#15-add-navigation)
+  - [1.6. Run the type checker](#16-run-the-type-checker)
+  - [1.7. Verify locally](#17-verify-locally)
+  - [1.8. Commit and push your work](#18-commit-and-push-your-work)
+  - [1.9. Deploy to the VM](#19-deploy-to-the-vm)
+  - [1.10. Finish the task](#110-finish-the-task)
+  - [1.11. Check the task using the autochecker](#111-check-the-task-using-the-autochecker)
 - [2. Acceptance criteria](#2-acceptance-criteria)
 
 ## 1. Steps
@@ -43,171 +39,226 @@ Follow the [`Git workflow`](../../../wiki/git-workflow.md) to complete this task
 
 ### 1.2. Create a `Lab Task` issue
 
-Title: `[Task] Add Front-end`
+Title: `[Task] Dashboard Front-end`
 
-### 1.3. Part A: Dev version
+### 1.3. Install the chart library
 
-> [!NOTE]
-> A dev server serves the front-end with hot reload: the browser updates automatically when you save a file.
-> This is for local development only — it is not meant to be deployed to production.
+1. To navigate to the front-end directory,
 
-#### 1.3.1. Run the dev server
-
-1. [Open a new `VS Code Terminal`](../../../wiki/vs-code.md#open-a-new-vs-code-terminal).
-2. Navigate to the front-end project directory.
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
    cd frontend
    ```
 
-3. Configure the environment. Complete the following steps:
+2. To install `Chart.js` and the React wrapper,
 
-   1. [Open the file](../../../wiki/vs-code.md#open-the-file) [`frontend/.env.example`](../../../frontend/.env.example).
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
+
+   ```terminal
+   npm install chart.js react-chartjs-2
+   ```
+
+3. Go back to the project root:
+
+   ```terminal
+   cd ..
+   ```
+
+### 1.4. Create the dashboard component
+
+> [!NOTE]
+> The dashboard should display at least two of the following visualizations:
+>
+> - **Bar chart** — score distribution from `/analytics/scores`
+> - **Line chart** — submissions over time from `/analytics/timeline`
+> - **Table** — pass rates from `/analytics/pass-rates` or group performance from `/analytics/groups`
+>
+> You can use an AI agent to generate the `Chart.js` integration code.
+
+1. Open the [coding agent](../../../wiki/coding-agents.md#what-is-a-coding-agent) in the `frontend/` directory.
+2. Give it a prompt like:
+
+   > "Create a Dashboard component in `frontend/src/Dashboard.tsx` that:
+   > 1. Fetches data from `/analytics/scores?lab=<lab-id>`, `/analytics/timeline?lab=<lab-id>`, and `/analytics/pass-rates?lab=<lab-id>` using the Bearer token from localStorage (key: `api_key`).
+   > 2. Shows a bar chart of score buckets using `react-chartjs-2`.
+   > 3. Shows a line chart of submissions per day.
+   > 4. Shows a table of pass rates per task.
+   > 5. Includes a dropdown to select different labs.
+   > 6. The code must pass `npm run typecheck` (TypeScript strict mode). Use proper types for all API responses — no `any`."
+
+   Use a default such as `lab-04` if data exists, or any other lab that has data in your environment.
+
+3. Review the generated code. Make sure it:
+
+   - Imports from `react-chartjs-2` and registers `Chart.js` components.
+   - Reads the API token from `localStorage` (key: `api_key`) for the `Authorization: Bearer` header.
+   - Renders at least one `<canvas>` element (this is how `Chart.js` renders charts).
+   - Handles loading and error states.
+   - Uses proper TypeScript types for API responses (no `any` types).
+
+> [!TIP]
+> If you prefer to implement manually, here is the minimal setup for a bar chart:
+>
+> ```tsx
+> import { Bar } from 'react-chartjs-2'
+> import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip } from 'chart.js'
+>
+> ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip)
+> ```
+>
+> Then render `<Bar data={chartData} />` where `chartData` has the `Chart.js` data format.
+
+### 1.5. Add navigation
+
+1. Update `frontend/src/App.tsx` to include navigation between the Items page and the Dashboard.
+
+   You can use an AI agent or implement it manually. A simple approach:
+
+   - Add a state variable for the current page (e.g., `"items"` or `"dashboard"`).
+   - Add buttons or links in the header to switch between pages.
+   - Render the Items table or the Dashboard component based on the current page.
+
+### 1.6. Run the type checker
+
+> [!IMPORTANT]
+> AI coding agents often generate code with type errors. `TypeScript` strict mode catches bugs like `undefined is not a function` **before** they reach the browser.
+
+1. To navigate to the front-end directory,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
+
+   ```terminal
+   cd frontend
+   ```
+
+2. To run the type checker,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
+
+   ```terminal
+   npm run typecheck
+   ```
+
+3. Fix any errors reported by the type checker. Common issues:
+
+   - Missing type annotations on function parameters or return values.
+   - Using `any` instead of a proper interface for API responses.
+   - Accessing properties on possibly `undefined` values without null checks.
+
+   > [!TIP]
+   > If you used an AI agent, give it the error output and ask it to fix the type errors.
+   > Include the instruction "Do not use `any` types" in your prompt.
+
+4. Go back to the project root:
+
+   ```terminal
+   cd ..
+   ```
+
+### 1.7. Verify locally
+
+1. To navigate to the front-end directory,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
+
+   ```terminal
+   cd frontend
+   ```
+
+2. Configure the environment. Complete these steps:
+
+   1. Open the file [`frontend/.env.example`](../../../frontend/.env.example) ([how to open a file](../../../wiki/vs-code.md#open-the-file)).
    2. Copy it to `frontend/.env`.
-   3. Fill in `VITE_API_URL` with your API URL, for example `http://<your-vm-ip-address>:<api-port>`.
-   4. Fill in `VITE_API_TOKEN` with your [`<api-token>`](../../../wiki/web-development.md#api-token).
+   3. Set `VITE_API_TARGET` to the URL of your back-end API, for example `http://<your-vm-ip-address>:42002`.
 
-4. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+      If you changed `CADDY_PORT` in `.env.docker.secret`, use your value instead of `42002`.
 
-   ```terminal
-   npm install
-   ```
+3. To install dependencies and start the dev server,
 
-5. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
-   npm run dev
+   npm install && npm run dev
    ```
 
-6. Open the URL shown in the terminal output in a browser.
+4. Open the URL shown in the terminal output in a browser.
+5. Connect with your API key.
+6. Navigate to the Dashboard page.
 
-   The output should be similar to this:
+   You should see charts rendering with data from the analytics endpoints.
 
-   ```terminal
-   Local: http://localhost:5173/
-   ```
+   > [!NOTE]
+   > Make sure you have run `POST /pipeline/sync` at least once (from Task 1)
+   > so there is data for the analytics endpoints to return.
 
-7. Verify that the front-end loads and displays data from the API.
+### 1.8. Commit and push your work
 
-#### 1.3.2. Edit a source file and observe hot reload
+1. [Commit](../../../wiki/git-workflow.md#commit-changes) your changes.
 
-1. [Open the file](../../../wiki/vs-code.md#open-the-file) [`frontend/src/App.tsx`](../../../frontend/src/App.tsx).
-2. Make a small visible change, for example change a heading text.
-3. Save the file.
-4. Observe that the browser updates automatically without a page refresh.
-
-### 1.4. Part B: Prod version
-
-> [!NOTE]
-> A production build compiles the front-end into a `dist/` folder of static [HTML](../../../wiki/web-development.md#html), [CSS](../../../wiki/web-development.md#css), and [JavaScript](../../../wiki/web-development.md#javascript) files.
-> These files are copied to the VM and served by `Caddy` — the same model as uploading to a [CDN](../../../wiki/web-development.md#cdn).
-
-#### 1.4.1. Build the production bundle
-
-1. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
-
-   ```terminal
-   npm run build
-   ```
-
-2. Verify that a `dist/` folder was created.
-
-#### 1.4.2. Copy the `dist/` folder to the VM
-
-1. Copy the `dist/` folder to the VM.
-
-   Method 1: use [`scp`](../../../wiki/ssh.md#scp):
-
-   ```terminal
-   scp -r dist/ <vm-user>@<vm-host>:/var/www/frontend/
-   ```
-
-   Method 2: use `rsync`:
-
-   ```terminal
-   rsync -av dist/ <vm-user>@<vm-host>:/var/www/frontend/
-   ```
-
-#### 1.4.3. Configure `Caddy`
-
-1. [Connect to your VM](../../../wiki/vm.md#connect-to-the-vm).
-2. Edit the [`Caddyfile`](../../../wiki/caddy.md) on the VM to serve the static files.
-
-   Add the following block to the `Caddyfile`:
-
-   ```caddyfile
-   :<frontend-port> {
-       root * /var/www/frontend/dist
-       file_server
-   }
-   ```
-
-3. Reload `Caddy`:
-
-   ```terminal
-   sudo systemctl reload caddy
-   ```
-
-#### 1.4.4. Verify in the browser
-
-1. Open the front-end URL in a browser: `<frontend-url>`
-2. Verify that the front-end loads and displays data from the API.
-
-### 1.5. Part C: Modify the front-end with an AI agent
-
-> [!NOTE]
-> The AI agent can read all front-end source files and find the right component to modify.
-> Your job is to give a clear prompt and verify the result.
-
-#### 1.5.1. Add a column using the AI agent
-
-1. Open the AI agent in the front-end project directory.
-2. Give it this prompt:
-
-   > "Add a `description` column to the data table. The API already returns this field. Add it to the table header and display the value in each row."
-
-3. Wait for the agent to make the changes.
-
-#### 1.5.2. Verify in the dev server
-
-1. Check that the dev server is still running (or restart it with `npm run dev`).
-2. Open the front-end in the browser.
-3. Verify that the new column appears in the table.
-
-> [!NOTE]
-> The dev server picks up the changes automatically — no rebuild is needed.
-
-#### 1.5.3. Deploy the change to the VM
-
-1. [Run using the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-using-the-vs-code-terminal):
-
-   ```terminal
-   npm run build
-   ```
-
-2. Copy the updated `dist/` folder to the VM using the [same method as in Part B](#142-copy-the-dist-folder-to-the-vm).
-3. Open the front-end URL in the browser and verify the new column appears in the production build.
-
-### 1.6. Finish the task
-
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
-
-   Use the following commit message:
+   Use this commit message:
 
    ```text
-   feat: add description column to the front-end table
+   feat: add analytics dashboard with charts
    ```
 
-2. [Create a PR](../../../wiki/git-workflow.md#create-a-pr-to-the-main-branch-in-your-fork) with your changes.
-3. [Get a PR review](../../../wiki/git-workflow.md#get-a-pr-review) and complete the subsequent steps in the `Git workflow`.
+2. Push your task branch:
+
+   ```terminal
+   git push -u origin <task-branch>
+   ```
+
+   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
+
+### 1.9. Deploy to the VM
+
+1. On your VM, pull your branch and restart the services:
+
+   ```terminal
+   cd se-toolkit-lab-5
+   git fetch origin && git checkout <task-branch> && git pull
+   docker compose --env-file .env.docker.secret up --build caddy -d
+   ```
+
+   Replace [`<task-branch>`](../../../wiki/git-workflow.md#task-branch).
+
+2. Open in a browser: `http://<your-vm-ip-address>:42002`.
+
+   If you changed `CADDY_PORT` in `.env.docker.secret`, use your value instead of `42002`.
+
+   Connect with your API key and verify the Dashboard page shows charts.
+
+   <details><summary>Troubleshooting</summary>
+
+   <h4>Charts do not render</h4>
+
+   Open the browser developer tools console and check for errors. Common issues: missing `Chart.js` component registration, incorrect data format, API returning errors.
+
+   <h4>Container build fails</h4>
+
+   Check that `frontend/package.json` includes `chart.js` and `react-chartjs-2` in dependencies (not devDependencies).
+
+   </details>
+
+### 1.10. Finish the task
+
+1. [Create a PR](../../../wiki/git-workflow.md#create-a-pr-to-the-main-branch-in-your-fork) with your changes.
+2. [Get a PR review](../../../wiki/git-workflow.md#get-a-pr-review) and complete the subsequent steps in the `Git workflow`.
+
+### 1.11. Check the task using the autochecker
+
+[Check the task using the autochecker `Telegram` bot](../../../wiki/autochecker.md#check-the-task-using-the-autochecker-bot).
 
 ---
 
 ## 2. Acceptance criteria
 
 - [ ] Issue has the correct title.
-- [ ] The front-end runs locally with `npm run dev`.
-- [ ] The production build is deployed on the VM and served by `Caddy`.
-- [ ] The `description` column appears in the data table in both the dev and production builds.
+- [ ] `react-chartjs-2` is listed in `frontend/package.json` dependencies.
+- [ ] The Dashboard component imports from `Chart.js`.
+- [ ] The front-end renders at least one `<canvas>` element (chart).
+- [ ] Navigation exists between the Items page and the Dashboard.
+- [ ] `npm run typecheck` passes with no errors.
+- [ ] The production build is deployed on the VM.
 - [ ] PR is approved.
 - [ ] PR is merged.

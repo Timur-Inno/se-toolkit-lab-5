@@ -1,111 +1,148 @@
-# CI/CD
+# Grafana Dashboard
 
 <h4>Time</h4>
 
-~60 min
+~30 min
 
 <h4>Purpose</h4>
 
-Build a `CI` pipeline that runs tests and publishes container images, and update the deployment to use published images.
+Set up `Grafana` as an alternative dashboard tool, connect it to `PostgreSQL`, and build visualizations using SQL queries.
 
 <h4>Context</h4>
 
-Running tests manually works for a single developer.
-With `CI`, tests run automatically on every push to `GitHub`, and a passing pipeline publishes a ready-to-deploy image.
-Your VM then pulls the published image instead of building from source.
+In the required tasks, you built a custom dashboard with `Chart.js` inside the React front-end. `Grafana` is a dedicated dashboarding tool used in industry for monitoring and analytics — it connects directly to the database and lets you build dashboards without writing front-end code.
 
 <h4>Table of contents</h4>
 
 - [1. Steps](#1-steps)
-  - [1.1. Follow the `Git workflow`](#11-follow-the-git-workflow)
-  - [1.2. Create a `Lab Task` issue](#12-create-a-lab-task-issue)
-  - [1.3. Create a `GitHub Actions` workflow](#13-create-a-github-actions-workflow)
-  - [1.4. Publish images to `DockerHub`](#14-publish-images-to-dockerhub)
-  - [1.5. Deploy using published images](#15-deploy-using-published-images)
-  - [1.6. Finish the task](#16-finish-the-task)
+  - [1.1. Create a `Lab Task` issue](#11-create-a-lab-task-issue)
+  - [1.2. Enable `Grafana` in `Docker Compose`](#12-enable-grafana-in-docker-compose)
+  - [1.3. Start `Grafana`](#13-start-grafana)
+  - [1.4. Add the `PostgreSQL` data source](#14-add-the-postgresql-data-source)
+  - [1.5. Build a dashboard](#15-build-a-dashboard)
+  - [1.6. Reflection](#16-reflection)
+  - [1.7. Finish the task](#17-finish-the-task)
 - [2. Acceptance criteria](#2-acceptance-criteria)
 
 ## 1. Steps
 
-### 1.1. Follow the `Git workflow`
+### 1.1. Create a `Lab Task` issue
 
-Follow the [`Git workflow`](../../../wiki/git-workflow.md) to complete this task.
+Title: `[Task] Grafana Dashboard`
 
-### 1.2. Create a `Lab Task` issue
+### 1.2. Enable `Grafana` in `Docker Compose`
 
-Title: `[Task] CI/CD`
-
-### 1.3. Create a `GitHub Actions` workflow
-
-> [!NOTE]
-> [`GitHub Actions`](../../../wiki/github.md#github-actions) runs your workflow automatically on every push to `GitHub`.
-
-1. Create the file `.github/workflows/ci.yml`.
-2. Add a workflow that does the following on every push to `main`:
-   1. Checks out the repository.
-   2. Runs all back-end unit tests using `uv run poe test`.
-   3. Runs all end-to-end tests with a headless browser.
-3. [Commit](../../../wiki/git-workflow.md#commit) the workflow file.
-4. Push the branch to `GitHub` and verify the workflow runs and passes in the `Actions` tab of your fork.
-
-### 1.4. Publish images to `DockerHub`
-
-> [!NOTE]
-> Publishing images to [`DockerHub`](../../../wiki/docker.md#dockerhub) lets your VM pull a pre-built image instead of building from source on each deploy.
-
-1. Create a `DockerHub` account if you don't have one.
-2. Add your `DockerHub` credentials as [`GitHub` secrets](../../../wiki/github.md#secrets):
-   - `DOCKERHUB_USERNAME`
-   - `DOCKERHUB_TOKEN`
-3. Update `.github/workflows/ci.yml` to add a publish step after tests pass:
-   1. Log in to `DockerHub` using the secrets.
-   2. Build the Docker image.
-   3. Push the image to `DockerHub` as `<your-dockerhub-username>/se-toolkit-lab:<git-sha>`.
-4. [Commit](../../../wiki/git-workflow.md#commit) the workflow update.
-5. Push and verify the image appears on `DockerHub` after the workflow passes.
-
-### 1.5. Deploy using published images
-
-1. [Connect to your VM](../../../wiki/vm.md#connect-to-the-vm).
-2. [Open the file](../../../wiki/vs-code.md#open-the-file):
+1. [Open the file](../../../wiki/vs-code.md#open-the-file):
    [`docker-compose.yml`](../../../docker-compose.yml).
-3. Replace each `build: .` entry with the published image reference:
 
-   **Before:**
+2. Find the commented-out `grafana` service at the bottom.
 
-   ```yaml
-   app:
-     build: .
-   ```
+3. Uncomment the entire `grafana` service block (remove the `#` characters at the start of each line).
 
-   **After:**
+4. If you want to change the default admin credentials, uncomment and edit the `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD` lines in `.env.docker.secret`.
 
-   ```yaml
-   app:
-     image: <your-dockerhub-username>/se-toolkit-lab:<git-sha>
-   ```
+### 1.3. Start `Grafana`
 
-4. On the VM, pull and restart the services:
+1. On your VM, to start `Grafana`,
+
+   [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
    ```terminal
-   docker compose pull
-   docker compose up -d
+   cd se-toolkit-lab-5
+   docker compose --env-file .env.docker.secret up --build -d
    ```
 
-5. Verify the back-end is running using the same checks as in Task 1.
+2. Open in a browser: `http://<your-vm-ip-address>:3000`.
 
-### 1.6. Finish the task
+   Replace [`<your-vm-ip-address>`](../../../wiki/vm.md#your-vm-ip-address).
 
-1. [Create a PR](../../../wiki/git-workflow.md#create-a-pr-to-the-main-branch-in-your-fork) with your changes.
-2. [Get a PR review](../../../wiki/git-workflow.md#get-a-pr-review) and complete the subsequent steps in the `Git workflow`.
+3. Log in with the default credentials:
+   - Username: `admin`
+   - Password: `admin`
+
+   You will be prompted to change the password on first login.
+
+### 1.4. Add the `PostgreSQL` data source
+
+1. In `Grafana`, go to **Connections** > **Data sources** > **Add data source**.
+2. Select **PostgreSQL**.
+3. Configure the connection:
+
+   | Field | Value |
+   |-------|-------|
+   | Host | `postgres:5432` |
+   | Database | `db-lab-5` |
+   | User | `postgres` |
+   | Password | `postgres` |
+   | TLS/SSL Mode | `disable` |
+
+   > [!NOTE]
+   > `Grafana` connects to `PostgreSQL` through the Docker network.
+   > The hostname `postgres` is the service name from `docker-compose.yml`.
+
+4. Click **Save & test**. You should see a "Database Connection OK" message.
+
+### 1.5. Build a dashboard
+
+1. Go to **Dashboards** > **New** > **New dashboard**.
+2. Add at least two panels. Example ideas:
+
+   **Panel 1: Score distribution**
+
+   Query:
+
+   ```sql
+   SELECT
+     CASE
+       WHEN score BETWEEN 0 AND 25 THEN '0-25'
+       WHEN score BETWEEN 26 AND 50 THEN '26-50'
+       WHEN score BETWEEN 51 AND 75 THEN '51-75'
+       WHEN score BETWEEN 76 AND 100 THEN '76-100'
+     END AS bucket,
+     COUNT(*) AS count
+   FROM interacts
+   WHERE score IS NOT NULL
+   GROUP BY bucket
+   ORDER BY bucket;
+   ```
+
+   Visualization: Bar chart.
+
+   **Panel 2: Submissions over time**
+
+   Query:
+
+   ```sql
+   SELECT
+     DATE(created_at) AS date,
+     COUNT(*) AS submissions
+   FROM interacts
+   GROUP BY DATE(created_at)
+   ORDER BY date;
+   ```
+
+   Visualization: Time series or line chart.
+
+3. Save the dashboard.
+
+### 1.6. Reflection
+
+Write a comment on your issue comparing the two approaches:
+
+1. **Hand-built dashboard** (React + Chart.js): What was hard? What was easy?
+2. **Tool-assisted dashboard** (Grafana): What was hard? What was easy?
+3. When would you choose one approach over the other?
+
+### 1.7. Finish the task
+
+1. Close the issue.
 
 ---
 
 ## 2. Acceptance criteria
 
 - [ ] Issue has the correct title.
-- [ ] The `GitHub Actions` workflow runs all tests on every push.
-- [ ] Images are published to `DockerHub` after a successful run.
-- [ ] The VM deploys using published images instead of local builds.
-- [ ] PR is approved.
-- [ ] PR is merged.
+- [ ] `Grafana` is accessible on port `3000`.
+- [ ] The dashboard has at least 2 panels with data from `PostgreSQL`.
+- [ ] The issue contains a reflection comment comparing the two dashboard approaches.
+- [ ] Issue is closed.
